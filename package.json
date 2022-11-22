@@ -31,5 +31,8 @@
     "eslint-plugin-sonarjs": "^0.16.0",
     "husky": "^8.0.1",
     "prettier": "2.7.1"
+  },
+  "dependencies": {
+    "@vercel/node": "^2.6.4"
   }
 }
