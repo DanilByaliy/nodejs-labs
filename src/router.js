@@ -23,6 +23,33 @@ class Router {
     }
     return route
   }
+
+  async handle(req, res) {
+    const url = this.#getURL(req)
+    const handler = this.#getHandler(req, url)
+    const rawRequest = await this.#getRawRequestData(req)
+    await handler(req, res, url, rawRequest)
+  }
+
+  #getHandler(req, url) {
+    const { pathname } = url
+    const methods = this.routes.get(pathname) ?? {}
+    return methods[req?.method]
+  }
+
+  #getURL(req) {
+    return new URL(req.url || '/', `https://${req.headers.host}`)
+  }
+
+  async #getRawRequestData(req) {
+    let rawRequest = ''
+
+    for await (const chunk of req) {
+      rawRequest += chunk
+    }
+
+    return rawRequest
+  }
 }
 
 export default Router
