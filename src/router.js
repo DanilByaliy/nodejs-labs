@@ -1,4 +1,5 @@
 import helpers from './helpers'
+import { safeJSON } from './utils'
 
 class Router {
   routes = new Map()
@@ -29,10 +30,12 @@ class Router {
   async handle(req, res) {
     const url = this.#getURL(req)
     const handler = this.#getHandler(req, url)
-    const rawRequest = await this.#getRawRequestData(req)
+
+    const reqData = new ReqData(req)
+    const { rawRequest, payload } = reqData.get()
 
     const gibridRes = Object.assign(res, helpers)
-    await handler(req, gibridRes, url, rawRequest)
+    await handler(req, gibridRes, url, payload, rawRequest)
   }
 
   #getURL(req) {
@@ -45,18 +48,76 @@ class Router {
     return methods[req?.method] ?? this.#defaultHandler
   }
 
-  async #getRawRequestData(req) {
-    let rawRequest = ''
+  #defaultHandler(req, res, url, payload, rawRequest) {
+    res.json({ message: 'method not implemented' })
+  }
+}
 
-    for await (const chunk of req) {
-      rawRequest += chunk
-    }
-
-    return rawRequest
+class ReqData {
+  #req
+  #contentTypes
+  #currentСontentType
+  #rawRequest = ''
+  #payload = {}
+  #processedContentTypes = {
+    'text/html': (text) => text,
+    'text/plain': (text) => text,
+    'application/json': (json) => safeJSON(json, {}),
+    'application/x-www-form-urlencoded': (data) => {
+      return Object.fromEntries(new URLSearchParams(data))
+    },
   }
 
-  #defaultHandler(req, res, url, rawRequest) {
-    res.json({ message: 'method not implemented' })
+  constructor(req) {
+    this.#req = req
+    this.#contentTypes = req.headers['content-type'] ?? ''
+  }
+
+  async get() {
+    await this.#processReqData()
+    return {
+      rawRequest: this.#rawRequest,
+      payload: this.#payload,
+    }
+  }
+
+  async #processReqData() {
+    await this.#extractRawRequestData()
+    this.#makePayload()
+  }
+
+  async #extractRawRequestData() {
+    for await (const chunk of this.#req) {
+      this.#rawRequest += chunk
+    }
+  }
+
+  #makePayload() {
+    this.#extractContentType()
+
+    if (this.#contentTypeHandlerExists()) {
+      this.#payload = this.#procesRawRequestData()
+    }
+  }
+
+  #extractContentType() {
+    if (this.#contentTypeExists()) {
+      this.#currentСontentType = this.#contentTypes.split(';')[0]
+    }
+  }
+
+  #contentTypeExists() {
+    return !!this.#contentTypes
+  }
+
+  #contentTypeHandlerExists() {
+    return !!this.#processedContentTypes[this.#currentСontentType]
+  }
+
+  #procesRawRequestData() {
+    return this.#processedContentTypes[this.#currentСontentType](
+      this.#rawRequest
+    )
   }
 }
 
