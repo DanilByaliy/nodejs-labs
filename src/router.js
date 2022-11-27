@@ -1,3 +1,5 @@
+import helpers from './helpers'
+
 class Router {
   routes = new Map()
 
@@ -28,17 +30,19 @@ class Router {
     const url = this.#getURL(req)
     const handler = this.#getHandler(req, url)
     const rawRequest = await this.#getRawRequestData(req)
-    await handler(req, res, url, rawRequest)
+
+    const gibridRes = Object.assign(res, helpers)
+    await handler(req, gibridRes, url, rawRequest)
+  }
+
+  #getURL(req) {
+    return new URL(req.url || '/', `https://${req.headers.host}`)
   }
 
   #getHandler(req, url) {
     const { pathname } = url
     const methods = this.routes.get(pathname) ?? {}
-    return methods[req?.method]
-  }
-
-  #getURL(req) {
-    return new URL(req.url || '/', `https://${req.headers.host}`)
+    return methods[req?.method] ?? this.#defaultHandler
   }
 
   async #getRawRequestData(req) {
@@ -49,6 +53,10 @@ class Router {
     }
 
     return rawRequest
+  }
+
+  #defaultHandler(req, res, url, rawRequest) {
+    res.json({ message: 'method not implemented' })
   }
 }
 
