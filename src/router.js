@@ -1,5 +1,5 @@
-import helpers from './helpers'
-import { safeJSON } from './utils'
+import helpers from './helpers.js'
+import { safeJSON } from './utils.js'
 
 class Router {
   routes = new Map()
@@ -32,7 +32,7 @@ class Router {
     const handler = this.#getHandler(req, url)
 
     const reqData = new ReqData(req)
-    const { rawRequest, payload } = reqData.get()
+    const { rawRequest, payload } = await reqData.get()
 
     const gibridRes = Object.assign(res, helpers)
     await handler(req, gibridRes, url, payload, rawRequest)
@@ -45,7 +45,7 @@ class Router {
   #getHandler(req, url) {
     const { pathname } = url
     const methods = this.routes.get(pathname) ?? {}
-    return methods[req?.method] ?? this.#defaultHandler
+    return methods.get(req?.method) ?? this.#defaultHandler
   }
 
   #defaultHandler(req, res, url, payload, rawRequest) {

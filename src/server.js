@@ -1,9 +1,8 @@
 import * as http from 'node:http'
+import router from './api.js'
 
 const server = http.createServer(async (req, res) => {
-  res.statusCode = 200
-  res.setHeader('Content-Type', 'text/plain')
-  res.end(`Hello !`)
+  await router.handle(req, res)
 })
 
 server.listen(8000, () => {
