@@ -44,7 +44,7 @@ class Router {
 
   #getHandler(req, url) {
     const { pathname } = url
-    const methods = this.routes.get(pathname) ?? {}
+    const methods = this.routes.get(pathname) ?? new Map()
     return methods.get(req?.method) ?? this.#defaultHandler
   }
 
