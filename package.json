@@ -33,6 +33,7 @@
     "prettier": "2.7.1"
   },
   "dependencies": {
-    "@vercel/node": "^2.6.4"
+    "@vercel/node": "^2.6.4",
+    "dotenv": "^16.0.3"
   }
 }

@@ -1,5 +1,9 @@
 import helpers from './helpers.js'
 import { safeJSON } from './utils.js'
+import { config } from 'dotenv'
+config()
+
+const RES = 1
 
 class Router {
   routes = new Map()
@@ -57,7 +61,7 @@ class Router {
     try {
       await handler(...argument)
     } catch (error) {
-      this.#handleError(argument[1], error)
+      this.#handleError(argument[RES], error)
     }
   }
 

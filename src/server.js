@@ -1,12 +1,16 @@
 import * as http from 'node:http'
 import router from './api.js'
+import { config } from 'dotenv'
+config()
+
+const PORT = parseInt(process.env.PORT) || 8000
 
 const server = http.createServer(async (req, res) => {
   await router.handle(req, res)
 })
 
-server.listen(8000, () => {
-  console.log(`Server running at port 8000`)
+server.listen(PORT, () => {
+  console.log(`Server running at port ${PORT}`)
 })
 
 server.on('clientError', (_, socket) => {
