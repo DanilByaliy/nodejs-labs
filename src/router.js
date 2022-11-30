@@ -35,7 +35,8 @@ class Router {
     const { rawRequest, payload } = await reqData.get()
 
     const gibridRes = Object.assign(res, helpers)
-    await handler(req, gibridRes, url, payload, rawRequest)
+
+    this.#handleRequest(handler, [req, gibridRes, url, payload, rawRequest])
   }
 
   #getURL(req) {
@@ -48,8 +49,21 @@ class Router {
     return methods.get(req?.method) ?? this.#defaultHandler
   }
 
-  #defaultHandler(req, res, url, payload, rawRequest) {
+  #defaultHandler(_, res) {
     res.json({ message: 'method not implemented' })
+  }
+
+  async #handleRequest(handler, argument) {
+    try {
+      await handler(...argument)
+    } catch (error) {
+      this.#handleError(argument[1], error)
+    }
+  }
+
+  #handleError(res, error) {
+    res.statusCode = 500
+    res.end(process.env.NODE_ENV === 'production' ? 'internal error' : error)
   }
 }
 
