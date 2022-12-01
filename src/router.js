@@ -9,6 +9,7 @@ class Router {
   routes = new Map()
 
   constructor() {
+    this.reqHandler = new ReqHandler(this.routes)
     this.get = this.addHandler.bind(this, 'GET')
     this.post = this.addHandler.bind(this, 'POST')
     this.patch = this.addHandler.bind(this, 'PATCH')
@@ -29,6 +30,18 @@ class Router {
       this.routes.set(path, route)
     }
     return route
+  }
+
+  async handle(req, res) {
+    await this.reqHandler.handle(req, res)
+  }
+}
+
+class ReqHandler {
+  routes
+
+  constructor(routes) {
+    this.routes = routes
   }
 
   async handle(req, res) {
